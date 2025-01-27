@@ -11,7 +11,7 @@ router.get('/api/customer/getAll',requireAuth,currentUser,async(req:Request,res:
     if (!req.currentUser || !req.currentUser.id) {
         throw new BadRequestError('User information is missing');
       }
-    const{id}=req.currentUser 
+    const{id}=req.currentUser
     const customers =await Customer.find({userId:id})
    
     res.status(200).send(customers)

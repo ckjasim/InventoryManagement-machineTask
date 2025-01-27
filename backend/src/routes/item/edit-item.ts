@@ -12,8 +12,10 @@ router.put('/api/item/:itemId',[
     .notEmpty()
     .withMessage('itemId is required')
 ],validateRequest,requireAuth,currentUser, async(req:Request, res:Response) => {
-    const {name,description,price,stock}=req.body;
+    try {
+        const {name,description,price,stock}=req.body;
     const {itemId}=req.params
+console.log(itemId, 'idddd')
     const item = await Item.findById(itemId);
     if(!item){
         throw new BadRequestError('Item not found')
@@ -24,6 +26,10 @@ router.put('/api/item/:itemId',[
     item.stock=stock||item.stock;
     await item.save()
     res.status(200).send(item)
+    } catch (error) {
+console.log(error,'lllllllllllll')
+    }
+    
 })
 export {router as editItemRouter}
 

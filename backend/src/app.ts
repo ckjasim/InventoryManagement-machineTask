@@ -16,7 +16,8 @@ import {
     editCustomerRouter,
     salesReportRouter,
     editSalesRouter,
-    deleteSaleRouter
+    deleteSaleRouter,
+    emailRouter
 } from './routes/index'
 import { errorhandler } from './middlewares/error-handler'
 import cookieSession from 'cookie-session'
@@ -48,6 +49,7 @@ app.use(editCustomerRouter)
 app.use(salesReportRouter)
 app.use(editSalesRouter)
 app.use(deleteSaleRouter)
+app.use(emailRouter)
 app.all('*', async () => {
     throw new NotFoundError();
 })

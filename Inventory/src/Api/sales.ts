@@ -34,6 +34,7 @@ export const deleteSaleReport = async(saleId:string)=>{
         throw error
     }
 }
+
 // export const saleCount = async(customerId:string)=>{
 //     try {
 //         const 

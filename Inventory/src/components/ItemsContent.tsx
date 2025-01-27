@@ -3,92 +3,200 @@ import { Filter, Package, Plus, Edit2, Search } from "lucide-react";
 import { DashboardCard, Table } from "./DashboardContent";
 import { createItem, editItem, getAllItem } from "../Api/item";
 
-const Modal:React.FC<any> = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
+import { Formik, Form, Field } from 'formik';
+import * as Yup from 'yup';
+import { generateExcel, generateItemPDF, printReport, sendEmail } from "../util/itemReport";
+
+// Validation schema
+const ItemSchema = Yup.object().shape({
+  name: Yup.string()
+    .required('Name is required')
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be less than 50 characters')
+    .trim(),
+  description: Yup.string()
+    .required('Description is required')
+    .min(10, 'Description must be at least 10 characters')
+    .max(200, 'Description must be less than 200 characters')
+    .trim(),
+  category: Yup.string()
+    .required('Category is required')
+    .min(2, 'Category must be at least 2 characters')
+    .max(30, 'Category must be less than 30 characters')
+    .trim(),
+  stock: Yup.number()
+    .required('Stock is required')
+    .integer('Stock must be a whole number')
+    .min(0, 'Stock cannot be negative')
+    .max(9999, 'Stock cannot exceed 9999 units'),
+  price: Yup.number()
+    .required('Price is required')
+    .positive('Price must be positive')
+    .max(999999.99, 'Price cannot exceed 999,999.99')
+    .test(
+      'is-decimal',
+      'Price cannot have more than 2 decimal places',
+      (value) => !value || Number.isInteger(value * 100)
+    )
+});
+
+interface ItemFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (values: any) => void;
+  initialData?: {
+    id?: string;
+    name?: string;
+    description?: string;
+    category?: string;
+    stock?: number;
+    price?: number;
+  };
+}
+
+const Modal: React.FC<ItemFormProps> = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
   if (!isOpen) return null;
 
-  // Use optional chaining and default values to handle null/undefined `initialData`
-  const { id = "", name = "", category = "", stock = "", price = "",description="" } = initialData || {};
+  const initialValues = {
+    name: initialData?.name || '',
+    description: initialData?.description || '',
+    category: initialData?.category || '',
+    stock: initialData?.stock || '',
+    price: initialData?.price || ''
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h3 className="text-xl font-bold mb-4">{id ? "Edit Item" : "Add Item"}</h3>
-        <form
-          onSubmit={(e:any) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const item = Object.fromEntries(formData.entries());
-            onSubmit({ ...item, id: id || `ITM${Date.now()}` });
+        <h3 className="text-xl font-bold mb-4">
+          {initialData?.id ? "Edit Item" : "Add Item"}
+        </h3>
+        
+        <Formik
+          initialValues={initialValues}
+          validationSchema={ItemSchema}
+          onSubmit={async (values, { setSubmitting, resetForm }) => {
+            try {
+              await onSubmit({
+                ...values,
+                id: initialData?.id || `ITM${Date.now()}`
+              });
+              resetForm();
+              onClose();
+            } catch (error) {
+              console.error('Form submission error:', error);
+            } finally {
+              setSubmitting(false);
+            }
           }}
         >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Name</label>
-              <input
-                type="text"
-                name="name"
-                defaultValue={name}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Description</label>
-              <input
-                type="text"
-                name="description"
-                defaultValue={description}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Category</label>
-              <input
-                type="text"
-                name="category"
-                defaultValue={category}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Stock</label>
-              <input
-                type="number"
-                name="stock"
-                defaultValue={stock}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">Price</label>
-              <input
-                type="text"
-                name="price"
-                defaultValue={price}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
-              />
-            </div>
-          </div>
-          <div className="mt-6 flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              {id ? "Update" : "Add"}
-            </button>
-          </div>
-        </form>
+          {({ errors, touched, isSubmitting }) => (
+            <Form className="space-y-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Name
+                </label>
+                <Field
+                  type="text"
+                  name="name"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 ${
+                    errors.name && touched.name ? 'border-red-500' : ''
+                  }`}
+                />
+                {errors.name && touched.name && (
+                  <div className="text-red-500 text-sm mt-1">{errors.name}</div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Description
+                </label>
+                <Field
+                  as="textarea"
+                  name="description"
+                  rows={3}
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 ${
+                    errors.description && touched.description ? 'border-red-500' : ''
+                  }`}
+                />
+                {errors.description && touched.description && (
+                  <div className="text-red-500 text-sm mt-1">{errors.description}</div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Category
+                </label>
+                <Field
+                  type="text"
+                  name="category"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 ${
+                    errors.category && touched.category ? 'border-red-500' : ''
+                  }`}
+                />
+                {errors.category && touched.category && (
+                  <div className="text-red-500 text-sm mt-1">{errors.category}</div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Stock
+                </label>
+                <Field
+                  type="number"
+                  name="stock"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 ${
+                    errors.stock && touched.stock ? 'border-red-500' : ''
+                  }`}
+                />
+                {errors.stock && touched.stock && (
+                  <div className="text-red-500 text-sm mt-1">{errors.stock}</div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Price
+                </label>
+                <Field
+                  type="number"
+                  name="price"
+                  step="0.01"
+                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-300 ${
+                    errors.price && touched.price ? 'border-red-500' : ''
+                  }`}
+                />
+                {errors.price && touched.price && (
+                  <div className="text-red-500 text-sm mt-1">{errors.price}</div>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isSubmitting 
+                    ? 'Processing...' 
+                    : initialData?.id 
+                      ? 'Update' 
+                      : 'Add'}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   );
@@ -101,6 +209,8 @@ export const ItemsContent = () => {
   const [filteredItem, setFilteredItem] = useState<any>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalType, setModalType] = useState<'Add' | 'Edit'>('Add');
+    const [isOpen, setIsOpen] = useState(false);
+  
   const handleEditItem= (item:any)=>{
     setIsModalOpen(true)
     setCurrentItem(item)
@@ -132,13 +242,14 @@ useEffect(() => {
       if(!currentItem||!currentItem.id){
         return
       }
+      console.log(currentItem,'jjhjhj')
       const response = await editItem(item,currentItem.id)
       if(response){
         console.log(response)
       }
     }
     setItems((prevItems) => {
-      const existingIndex = prevItems.findIndex((i) => i.id === item.id);
+      const existingIndex = prevItems.findIndex((i: { id: any; }) => i.id === item.id);
       if (existingIndex > -1) {
         const updatedItems = [...prevItems];
         updatedItems[existingIndex] = item;
@@ -148,7 +259,29 @@ useEffect(() => {
     });
     setIsModalOpen(false);
   };
-
+ const handleOptionClick = (option) => {
+    setIsOpen(false);
+    switch (option) {
+      case "pdf":
+        console.log("Generate PDF");
+        generateItemPDF(items)
+        break;
+      case "excel":
+        console.log("Generate Excel");
+        generateExcel(items)
+        break;
+      case "email":
+        console.log("Send Email");
+        sendEmail({items})
+        break;
+      case "print":
+        console.log("Print Report");
+        printReport(items)
+        break;
+      default:
+        break;
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -164,6 +297,47 @@ useEffect(() => {
           />
           <Search className="absolute right-3 top-2.5 text-gray-500 h-5 w-5" />
         </div>
+        <div className="relative inline-block text-left">
+      {/* Button to toggle dropdown */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold"
+      >
+        Download Report
+      </button>
+
+      {/* Dropdown menu */}
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+          <ul className="py-1">
+            <li
+              onClick={() => handleOptionClick("pdf")}
+              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+            >
+              PDF
+            </li>
+            <li
+              onClick={() => handleOptionClick("excel")}
+              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+            >
+              Excel
+            </li>
+            <li
+              onClick={() => handleOptionClick("email")}
+              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+            >
+              Email
+            </li>
+            <li
+              onClick={() => handleOptionClick("print")}
+              className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+            >
+              Print
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
           <button
             onClick={() => {
               setCurrentItem(null);

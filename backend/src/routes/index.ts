@@ -13,6 +13,7 @@ import { editCustomerRouter } from "./customer/edit-customer";
 import { salesReportRouter } from "./sales/order-customer";
 import { editSalesRouter } from "./sales/edit-sales-report";
 import { deleteSaleRouter } from "./sales/delete-sales-report";
+import { emailRouter } from "./send-email";
 export {singinRouter,
     singupRouter,
     singoutRouter,
@@ -27,5 +28,6 @@ export {singinRouter,
     editCustomerRouter,
     salesReportRouter,
     editSalesRouter,
-    deleteSaleRouter
+    deleteSaleRouter,
+    emailRouter
 }

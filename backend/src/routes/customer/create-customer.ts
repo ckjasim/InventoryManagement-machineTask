@@ -12,17 +12,19 @@ router.post('/api/customer/create',[
     
   ],validateRequest,requireAuth,currentUser,async(req:Request,res:Response)=>{
     const {name,email}=req.body
-    const existingCustomer =await Customer.findOne({ name: { $regex: new RegExp("^" + name + "$", "i") } ,email})
-    if (existingCustomer) {
-        throw new BadRequestError('Customer exist');
-    }
+    // console.log(curr)
+    const existingCustomer =await Customer.findOne({userId:req.currentUser?.id,email})
     if (!req.currentUser || !req.currentUser.id) {
-        throw new BadRequestError('User information is missing');
-      }
-    const{id}=req.currentUser 
-    const customer = Customer.build({name,userId:id,email})
-    await customer.save()
-    res.status(201).send(customer)
+      throw new BadRequestError('User information is missing');
+    }else if (existingCustomer) {
+        throw new BadRequestError('Customer exist with email Id'); 
+    }else{
+
+      const{id}=req.currentUser 
+      const customer = Customer.build({name,userId:id,email})
+      await customer.save()
+      res.status(201).send(customer)
+    }
 
 })
 export {router as createCustomerRouter}

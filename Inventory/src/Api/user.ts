@@ -31,3 +31,11 @@ export const currentUser =async ()=>{
         throw error
     }
 } 
+export const sendEmailApi = async (data: { sales?: any; items?: any }) => {
+    try {
+      const response = await Api.post(`/api/users/sendEmail`, data); // Dynamically send sales or items
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
