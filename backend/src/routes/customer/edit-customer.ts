@@ -5,6 +5,7 @@ import { requireAuth } from "../../middlewares/require-auth";
 import { currentUser } from "../../middlewares/current-user";
 import { Customer } from "../../models/customer";
 import { BadRequestError } from "../../errors/bad-request-error";
+import { HttpStatus } from "../../constants/enum";
 
 const router = Router()
 router.patch('/api/customer/:customerId',[
@@ -22,7 +23,7 @@ async(req:Request,res:Response)=>{
     customer.name=name||customer.name;
     customer.email=email||customer.email;
     await customer.save();
-    res.status(200).send(customer)
+    res.status(HttpStatus.CREATED).send(customer)
 }
 )
 export {router as editCustomerRouter}

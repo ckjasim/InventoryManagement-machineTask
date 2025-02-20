@@ -5,6 +5,7 @@ import { User } from '../models/user';
 import { BadRequestError } from '../errors/bad-request-error';
 import { Password } from '../service/password';
 import jwt from 'jsonwebtoken';
+import { HttpStatus } from '../constants/enum';
 
 const router = express.Router()
 
@@ -35,7 +36,7 @@ router.post('/api/users/signin', [
         email: existingUser.email
     }, process.env.JWT_KEY!)
     req.session = { jwt: userJWt };
-    res.status(200).send(existingUser);
+    res.status(HttpStatus.SUCCESS).send(existingUser);
 })
 
 export { router as singinRouter };

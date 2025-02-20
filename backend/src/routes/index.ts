@@ -1,3 +1,5 @@
+import { customerRouter } from "./customerRoute";
+
 import { singinRouter } from "./signin";
 import {singupRouter} from './siginup'
 import { singoutRouter } from "./singout";
@@ -14,7 +16,10 @@ import { salesReportRouter } from "./sales/order-customer";
 import { editSalesRouter } from "./sales/edit-sales-report";
 import { deleteSaleRouter } from "./sales/delete-sales-report";
 import { emailRouter } from "./send-email";
-export {singinRouter,
+export {
+    customerRouter,
+    
+    singinRouter,
     singupRouter,
     singoutRouter,
     currentUserRouter,
@@ -22,10 +27,8 @@ export {singinRouter,
     allItemRouter,
     editItemRouter,
     getEachItemRouter,
-    createCustomerRouter,
-    AllCustomerRouter,
     placeorderRouter,
-    editCustomerRouter,
+  
     salesReportRouter,
     editSalesRouter,
     deleteSaleRouter,

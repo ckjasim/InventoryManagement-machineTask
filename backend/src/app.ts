@@ -10,14 +10,12 @@ import {
     allItemRouter,
     editItemRouter,
     getEachItemRouter,
-    createCustomerRouter,
-    AllCustomerRouter,
     placeorderRouter,
-    editCustomerRouter,
     salesReportRouter,
     editSalesRouter,
     deleteSaleRouter,
-    emailRouter
+    emailRouter,
+    customerRouter
 } from './routes/index'
 import { errorhandler } from './middlewares/error-handler'
 import cookieSession from 'cookie-session'
@@ -34,6 +32,7 @@ app.use(cookieSession({
 }))
 app.use(cors({ origin:process.env.CLIENT_PORT, 
     credentials: true}))
+app.use(customerRouter)
 app.use(currentUserRouter)
 app.use(singinRouter)
 app.use(singoutRouter)
@@ -42,10 +41,8 @@ app.use(createItemRouter)
 app.use(allItemRouter)
 app.use(editItemRouter)
 app.use(getEachItemRouter)
-app.use(createCustomerRouter)
-app.use(AllCustomerRouter)
+
 app.use(placeorderRouter)
-app.use(editCustomerRouter)
 app.use(salesReportRouter)
 app.use(editSalesRouter)
 app.use(deleteSaleRouter)

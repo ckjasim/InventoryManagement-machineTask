@@ -1,5 +1,6 @@
 import {Request,Response, NextFunction } from "express";
 import { CustomError } from "../errors/custom-error";
+import { HttpStatus } from "../constants/enum";
 
 
 export const errorhandler =(
@@ -13,7 +14,7 @@ export const errorhandler =(
     }
   
     console.log('something went wrong',err.message)
-    res.status(400).send({
+    res.status(HttpStatus.BAD_REQUEST).send({
         message:err.message
     })
 }

@@ -4,6 +4,7 @@ import { User } from '../models/user';
 import { validateRequest } from '../middlewares/validateRequest';
 import { BadRequestError } from '../errors/bad-request-error';
 import jwt from 'jsonwebtoken'
+import { HttpStatus } from '../constants/enum';
 
 
 const router = express.Router();
@@ -39,7 +40,7 @@ async (req: Request, res: Response)=> {
     req.session={
         jwt:userJWt
     }
-     res.status(201).send(user); 
+     res.status(HttpStatus.CREATED).send(user); 
 });
 
 export { router as singupRouter };

@@ -4,6 +4,7 @@ import { validateRequest } from '../middlewares/validateRequest';
 import { BadRequestError } from '../errors/bad-request-error';
 import { currentUser } from '../middlewares/current-user';
 import { sendEmail } from '../util/nodeMailerService';
+import { HttpStatus } from '../constants/enum';
 
 const router = express.Router();
 
@@ -109,7 +110,7 @@ router.post('/api/users/sendEmail', currentUser, validateRequest, async (req: Re
     emailHTML
   );
 
-  res.status(200).send({ message: `${sales ? 'Sales' : 'Inventory'} report email sent successfully!` });
+  res.status(HttpStatus.SUCCESS).send({ message: `${sales ? 'Sales' : 'Inventory'} report email sent successfully!` });
 });
 
 export { router as emailRouter };

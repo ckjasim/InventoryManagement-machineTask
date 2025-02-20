@@ -5,6 +5,7 @@ import { currentUser } from '../../middlewares/current-user'
 import { BadRequestError } from '../../errors/bad-request-error'
 import { validateRequest } from '../../middlewares/validateRequest'
 import { Customer } from '../../models/customer'
+import { HttpStatus } from '../../constants/enum'
 const router = Router()
 router.post('/api/customer/create',[
     body('name').trim().notEmpty().withMessage('Name is required'),
@@ -23,7 +24,7 @@ router.post('/api/customer/create',[
       const{id}=req.currentUser 
       const customer = Customer.build({name,userId:id,email})
       await customer.save()
-      res.status(201).send(customer)
+      res.status(HttpStatus.CREATED).send(customer)
     }
 
 })
