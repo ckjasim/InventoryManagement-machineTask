@@ -7,10 +7,7 @@ import {
     singoutRouter,
     currentUserRouter,
 
-    placeorderRouter,
-    salesReportRouter,
-    editSalesRouter,
-    deleteSaleRouter,
+    salesRouter,
     emailRouter,
     customerRouter,
     itemRouter,
@@ -32,17 +29,12 @@ app.use(cors({ origin:process.env.CLIENT_PORT,
     credentials: true}))
 app.use(customerRouter)
 app.use(itemRouter)
+app.use(salesRouter)
 
 app.use(currentUserRouter)
 app.use(singinRouter)
 app.use(singoutRouter)
 app.use(singupRouter)
-
-
-app.use(placeorderRouter)
-app.use(salesReportRouter)
-app.use(editSalesRouter)
-app.use(deleteSaleRouter)
 app.use(emailRouter)
 app.all('*', async () => {
     throw new NotFoundError();
