@@ -244,9 +244,9 @@ useEffect(() => {
       }
       console.log(currentItem,'jjhjhj')
       const response = await editItem(item,currentItem.id)
-      if(response){
-        console.log(response)
-      }
+    
+        console.log(response,'kkkkkkkkkkkkkkkkkkkkkk')
+      
     }
     setItems((prevItems) => {
       const existingIndex = prevItems.findIndex((i: { id: any; }) => i.id === item.id);

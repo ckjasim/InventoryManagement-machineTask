@@ -7,6 +7,7 @@ interface ItemAttrs {
     stock:number;
     price:number;
     isBlock?:boolean;
+    userId?:any;
 }
 
 interface ItemModel extends Model<ItemDoc>{
@@ -19,10 +20,13 @@ interface ItemDoc extends Document{
     stock:number;
     price:number;
     isBlock?:boolean;
+    userId?:any;
+
 }
 
 const ItemSchema = new Schema({
     name:{type:String,requred:true},
+    userId:{type:Schema.Types.Mixed,requred:true},
     description:{type:String,requred:true},
     stock:{type:Number,required:true},
     price:{type:Number,required:true},

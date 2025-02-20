@@ -1,14 +1,66 @@
-import express, { Request, Response } from 'express';
-import { body } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
+import { Request, Response } from 'express';
 import { BadRequestError } from '../errors/bad-request-error';
-import { currentUser } from '../middlewares/current-user';
-import { sendEmail } from '../util/nodeMailerService';
 import { HttpStatus } from '../constants/enum';
+import { User } from '../models/user';
+import jwt from 'jsonwebtoken'
+import { Password } from '../service/password';
+import { sendEmail } from '../util/nodeMailerService';
 
-const router = express.Router();
 
-// Function to generate Sales HTML
+export const signUp = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const existingUser = await User.findOne({email});
+
+  if(existingUser){
+     throw new BadRequestError('Email in use')
+
+  }
+  const user = User.build({email,password})
+  await user.save()
+
+  const userJWt =jwt.sign({
+      id:user._id,
+      email:user.email
+  },process.env.JWT_KEY!)
+
+  //Store it on session object
+  req.session={
+      jwt:userJWt
+  }
+   res.status(HttpStatus.CREATED).send(user); 
+};
+
+
+export const signIn = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+     const existingUser = await User.findOne({ email })
+     if (!existingUser) {
+         throw new BadRequestError('Invalid credentials');
+     }
+     const passwordsMatch = await Password.compare(
+         existingUser.password,
+         password
+     )
+     if (!passwordsMatch) {
+         throw new BadRequestError('Invalid credentials')
+     }
+     const userJWt = jwt.sign({
+         id: existingUser.id,
+         email: existingUser.email
+     }, process.env.JWT_KEY!)
+     req.session = { jwt: userJWt };
+     res.status(HttpStatus.SUCCESS).send(existingUser);
+};
+
+export const signOut = async (req: Request, res: Response) => {
+  req.session=null;
+  res.send({message:'you are logout'})
+};
+export const currentUserInfo = async (req: Request, res: Response) => {
+  res.send({currentUser:req.currentUser||null})
+
+};
+
 const generateSalesHTML = (sales: any[]): string => {
   const rows = sales.map((sale, index) => `
     <tr>
@@ -85,9 +137,8 @@ const generateItemsHTML = (items: any[]): string => {
     </html>
   `;
 };
-
-router.post('/api/users/sendEmail', currentUser, validateRequest, async (req: Request, res: Response) => {
-  const { sales, items } = req.body;
+export const sendEmailToUser = async (req: Request, res: Response) => {
+ const { sales, items } = req.body;
 
   if (!sales && !items) {
     throw new BadRequestError('No data provided');
@@ -111,6 +162,5 @@ router.post('/api/users/sendEmail', currentUser, validateRequest, async (req: Re
   );
 
   res.status(HttpStatus.SUCCESS).send({ message: `${sales ? 'Sales' : 'Inventory'} report email sent successfully!` });
-});
+}
 
-export { router as emailRouter };

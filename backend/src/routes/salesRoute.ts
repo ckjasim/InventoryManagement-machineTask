@@ -3,8 +3,6 @@ import { param, body } from "express-validator";
 import { validateRequest } from "../middlewares/validateRequest";
 import { requireAuth } from "../middlewares/require-auth";
 import { currentUser } from "../middlewares/current-user";
-import { editCustomer, createCustomer, deleteCustomer, getAllCustomers } from "../controller/customerController";
-import { createItem, editItem,  getAllItems, getEachItem } from "../controller/itemController";
 import { customerOrder, deleteSalesReport, editSales, placeOrder, saleCount } from "../controller/salesController";
 
 const router = Router();

@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { Customer } from '../models/customer';
 import { BadRequestError } from '../errors/bad-request-error';
 import { HttpStatus } from '../constants/enum';
 import { Sales } from '../models/sales';
